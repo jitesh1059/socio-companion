@@ -83,7 +83,7 @@ def getFrame(sec):
     return hasFrames
     
 sec = 0
-frameRate = 1 #it will capture image in each 1 second
+frameRate = 0.5 #it will capture image in each 0.5 second
 count=1
 success = getFrame(sec)
 while success:
@@ -97,7 +97,7 @@ st.markdown(count)
 #is ready for prediction
 
 cfg = get_cfg()
-cfg.MODEL.DEVICE = "cpu"
+
 
 cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_R_50_C4_3x.yaml"))
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.9 
@@ -190,12 +190,12 @@ def find_closest(dist,num,thresh):
 #df = pd.DataFrame({"p1": p1, "p2": p2, "dist":d})
 #print(df)
 
-def change_2_red(img, person,p1,p2):
-    risky = np.unique(p1+p2)
-    for i in risky:
-        x1,y1,x2,y2 = person[i]
-        _ = cv2.rectangle(img, (x1,y1), (x2,y2), (0, 0, 255), 2)
-        return img
+#def change_2_red(img, person,p1,p2):
+#    risky = np.unique(p1+p2)
+#    for i in risky:
+#        x1,y1,x2,y2 = person[i]
+#        _ = cv2.rectangle(img, (x1,y1), (x2,y2), (0, 0, 255), 2)
+#        return img
 
 #img = change_2_red(img, person, p1,p2)
 
@@ -205,6 +205,7 @@ def change_2_red(img, person,p1,p2):
 def find_closest_people(value,thresh):
 
   img = cv2.imread('/content/FDK/temp_images/image' + str(value) + '.jpg')
+  print(value + img)
   outputs = predictor(img)
   classes=outputs['instances'].pred_classes.cpu().numpy()
   bbox=outputs['instances'].pred_boxes.tensor.cpu().numpy()
@@ -214,15 +215,14 @@ def find_closest_people(value,thresh):
   num = len(midpoints)
   dist= compute_distance(midpoints,num)
   p1,p2,d=find_closest(dist,num,thresh)
-  img = change_2_red(img,person,p1,p2)
+  print(img)
   cv2.imwrite('/content/FDK/final_images/new_image' + str(value) + '.jpg',img)
-  return 0
 
 predict = False
 def getPhoto(var):
-    st.image("/content/FDK/final_images/final_image" + str(var) + ".jpg")
+    st.image("/content/FDK/final_images/new_image" + str(var) + ".jpg")
 
-for a in range(1, count - 1, 1):
+for a in range(1, count, 1):
     thresh = 100
     find_closest_people(a, thresh)
     predict = True
@@ -230,30 +230,3 @@ for a in range(1, count - 1, 1):
 if predict == True:
     values = st.slider(label="Changing Photos", min_value = 1, max_value = count - 1, step = 1)
     getPhoto(values)
-    if st.button("Save Video"):
-        pathIn= '/content/FDK/final_images'
-        pathOut = 'final_vid.mp4'
-        fps = 1
-        frame_array = []
-        files = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
-        #for sorting the file names properly
-        files.sort(key = lambda x: x[5:-4])
-        files.sort()
-        frame_array = []
-        files = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
-        #for sorting the file names properly
-        files.sort(key = lambda x: x[5:-4])
-        for i in range(len(files)):
-            filename=pathIn + files[i]
-            #reading each files
-            img = cv2.imread(filename)
-            height, width, layers = img.shape
-            size = (width,height)
-            
-            #inserting the frames into an image array
-            frame_array.append(img)
-        out = cv2.VideoWriter(pathOut,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
-        for i in range(len(frame_array)):
-            # writing to a image array
-            out.write(frame_array[i])
-        out.release()
