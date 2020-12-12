@@ -83,7 +83,7 @@ def getFrame(sec):
     return hasFrames
     
 sec = 0
-frameRate = 0.5 #it will capture image in each 0.5 second
+frameRate = 1 #it will capture image in each 1 second
 count=1
 success = getFrame(sec)
 while success:
@@ -92,6 +92,7 @@ while success:
     sec = round(sec, 2)
     success = getFrame(sec)
 
+st.markdown(count)
 #Downloading the pretrained module from Detectron2's model zoo that
 #is ready for prediction
 
@@ -232,7 +233,7 @@ if predict == True:
     if st.button("Save Video"):
         pathIn= '/content/FDK/final_images'
         pathOut = 'final_vid.mp4'
-        fps = 0.5
+        fps = 1
         frame_array = []
         files = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
         #for sorting the file names properly
